@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Moon Fairy Cafe</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Raleway:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --cream: #faf6f0;
+      --blush: #f2e4d8;
+      --mauve: #c9a8b2;
+      --plum: #7a4f6d;
+      --midnight: #1e1528;
+      --gold: #c8a96e;
+      --moon: #e8dfc8;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Raleway', sans-serif;
+      background: var(--cream);
+      color: var(--midnight);
+      overflow-x: hidden;
+    }
+
+    /* Stars background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        radial-gradient(1px 1px at 10% 20%, rgba(200,169,110,0.4) 0%, transparent 100%),
+        radial-gradient(1px 1px at 30% 60%, rgba(200,169,110,0.3) 0%, transparent 100%),
+        radial-gradient(1px 1px at 70% 15%, rgba(200,169,110,0.4) 0%, transparent 100%),
+        radial-gradient(1px 1px at 85% 45%, rgba(200,169,110,0.2) 0%, transparent 100%),
+        radial-gradient(1px 1px at 55% 80%, rgba(200,169,110,0.3) 0%, transparent 100%),
+        radial-gradient(1px 1px at 20% 90%, rgba(200,169,110,0.2) 0%, transparent 100%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* NAV */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 48px;
+      background: rgba(250,246,240,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(201,168,178,0.3);
+    }
+
+    .nav-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--plum);
+      letter-spacing: 2px;
+      text-decoration: none;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 36px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      color: var(--midnight);
+      font-size: 12px;
+      letter-spacing: 2px;
+      font-weight: 500;
+      text-transform: uppercase;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--plum); }
+
+    /* HERO */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 120px 24px 80px;
+      position: relative;
+      background: linear-gradient(160deg, var(--cream) 0%, var(--blush) 60%, #e8d4e0 100%);
+    }
+
+    .hero-moon {
+      font-size: 80px;
+      margin-bottom: 24px;
+      animation: float 6s ease-in-out infinite;
+      display: block;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-12px); }
+    }
+
+    .hero-eyebrow {
+      font-size: 11px;
+      letter-spacing: 4px;
+      color: var(--mauve);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+      font-weight: 500;
+      opacity: 0;
+      animation: fadeUp 1s 0.3s forwards;
+    }
+
+    .hero-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(52px, 10vw, 96px);
+      font-weight: 300;
+      line-height: 1.0;
+      color: var(--plum);
+      margin-bottom: 12px;
+      opacity: 0;
+      animation: fadeUp 1s 0.5s forwards;
+    }
+
+    .hero-title em {
+      font-style: italic;
+      color: var(--midnight);
+    }
+
+    .hero-sub {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(18px, 3vw, 26px);
+      font-weight: 300;
+      font-style: italic;
+      color: var(--mauve);
+      margin-bottom: 48px;
+      opacity: 0;
+      animation: fadeUp 1s 0.7s forwards;
+    }
+
+    .hero-cta {
+      display: inline-block;
+      padding: 14px 40px;
+      background: var(--plum);
+      color: var(--cream);
+      text-decoration: none;
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      font-weight: 500;
+      transition: all 0.3s;
+      opacity: 0;
+      animation: fadeUp 1s 0.9s forwards;
+    }
+
+    .hero-cta:hover {
+      background: var(--midnight);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(30,21,40,0.2);
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* DIVIDER */
+    .divider {
+      text-align: center;
+      padding: 16px;
+      color: var(--mauve);
+      font-size: 20px;
+      letter-spacing: 8px;
+    }
+
+    /* SECTION BASE */
+    section {
+      padding: 96px 48px;
+      position: relative;
+    }
+
+    .section-label {
+      font-size: 10px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--mauve);
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+
+    .section-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(36px, 5vw, 56px);
+      font-weight: 300;
+      color: var(--plum);
+      line-height: 1.1;
+      margin-bottom: 24px;
+    }
+
+    /* ABOUT */
+    .about {
+      background: var(--midnight);
+      color: var(--cream);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+    }
+
+    .about .section-title { color: var(--moon); }
+    .about .section-label { color: var(--mauve); }
+
+    .about p {
+      font-size: 15px;
+      line-height: 1.9;
+      color: rgba(250,246,240,0.75);
+      font-weight: 300;
+      margin-bottom: 16px;
+    }
+
+    .about-visual {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .moon-art {
+      width: 220px;
+      height: 220px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, var(--moon), var(--gold) 50%, var(--mauve));
+      box-shadow: 0 0 60px rgba(200,169,110,0.3), inset -20px -20px 40px rgba(30,21,40,0.3);
+      animation: glow 4s ease-in-out infinite;
+    }
+
+    @keyframes glow {
+      0%, 100% { box-shadow: 0 0 60px rgba(200,169,110,0.3); }
+      50% { box-shadow: 0 0 100px rgba(200,169,110,0.5); }
+    }
+
+    .about-stats {
+      display: flex;
+      gap: 40px;
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .stat-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 40px;
+      font-weight: 300;
+      color: var(--gold);
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: var(--mauve);
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    /* MENU */
+    .menu-section {
+      background: var(--blush);
+    }
+
+    .menu-section .section-title { text-align: center; }
+    .menu-section .section-label { text-align: center; }
+
+    .menu-intro {
+      text-align: center;
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      color: var(--mauve);
+      font-size: 18px;
+      margin-bottom: 64px;
+    }
+
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 24px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .menu-card {
+      background: var(--cream);
+      padding: 32px 28px;
+      border: 1px solid rgba(201,168,178,0.3);
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .menu-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--mauve), var(--gold));
+      transform: scaleX(0);
+      transition: transform 0.3s;
+    }
+
+    .menu-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(122,79,109,0.12); }
+    .menu-card:hover::before { transform: scaleX(1); }
+
+    .menu-card-emoji { font-size: 32px; margin-bottom: 16px; display: block; }
+    .menu-card-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--plum);
+      margin-bottom: 8px;
+    }
+
+    .menu-card-desc {
+      font-size: 13px;
+      color: #8a7a85;
+      line-height: 1.7;
+      margin-bottom: 16px;
+    }
+
+    .menu-card-price {
+      font-size: 14px;
+      color: var(--gold);
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+
+    /* AMBIANCE */
+    .ambiance {
+      background: linear-gradient(135deg, var(--plum) 0%, var(--midnight) 100%);
+      color: var(--cream);
+      text-align: center;
+      padding: 120px 48px;
+    }
+
+    .ambiance .section-label { color: var(--mauve); }
+    .ambiance .section-title { color: var(--moon); margin-bottom: 48px; }
+
+    .ambiance-features {
+      display: flex;
+      justify-content: center;
+      gap: 64px;
+      flex-wrap: wrap;
+      margin-top: 48px;
+    }
+
+    .feature {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .feature-icon { font-size: 36px; }
+    .feature-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 20px;
+      color: var(--moon);
+    }
+
+    .feature-desc {
+      font-size: 12px;
+      color: rgba(232,223,200,0.6);
+      letter-spacing: 1px;
+      max-width: 140px;
+      text-align: center;
+      line-height: 1.7;
+    }
+
+    /* VISIT */
+    .visit {
+      background: var(--cream);
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: start;
+    }
+
+    .hours-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 32px;
+    }
+
+    .hour-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(201,168,178,0.3);
+      font-size: 14px;
+    }
+
+    .hour-day { color: var(--plum); font-weight: 500; letter-spacing: 1px; }
+    .hour-time { color: #8a7a85; font-family: 'Cormorant Garamond', serif; font-size: 16px; font-style: italic; }
+
+    .contact-info {
+      margin-top: 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .contact-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 14px;
+      color: #8a7a85;
+    }
+
+    .contact-item span:first-child { font-size: 20px; }
+
+    /* FOOTER */
+    footer {
+      background: var(--midnight);
+      color: rgba(250,246,240,0.4);
+      text-align: center;
+      padding: 40px 24px;
+      font-size: 12px;
+      letter-spacing: 1px;
+    }
+
+    footer .footer-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 28px;
+      color: var(--gold);
+      display: block;
+      margin-bottom: 12px;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      nav { padding: 16px 20px; }
+      .nav-links { gap: 20px; }
+      .nav-links a { font-size: 10px; }
+      section { padding: 64px 24px; }
+      .about, .visit { grid-template-columns: 1fr; gap: 40px; }
+      .about-visual { order: -1; }
+      .ambiance-features { gap: 36px; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <a href="#" class="nav-logo">🌙 Moon Fairy Cafe</a>
+    <ul class="nav-links">
+      <li><a href="#about">About</a></li>
+      <li><a href="#menu">Menu</a></li>
+      <li><a href="#visit">Visit</a></li>
+    </ul>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <span class="hero-moon">🌙</span>
+    <p class="hero-eyebrow">A magical place to gather</p>
+    <h1 class="hero-title">Moon Fairy<br><em>Cafe</em></h1>
+    <p class="hero-sub">Where every sip feels like a spell</p>
+    <a href="#menu" class="hero-cta">Explore Our Menu</a>
+  </section>
+
+  <div class="divider">· ✦ · ✦ · ✦ ·</div>
+
+  <!-- ABOUT -->
+  <section class="about" id="about">
+    <div>
+      <p class="section-label">Our Story</p>
+      <h2 class="section-title">A little corner of<br><em>magic</em></h2>
+      <p>Moon Fairy Cafe was born from a love of quiet mornings, warm drinks, and the feeling that some places hold a little extra enchantment.</p>
+      <p>We craft each drink with intention — sourcing seasonal ingredients and pairing them with flavors that surprise and delight. Come as you are, stay as long as you like.</p>
+    </div>
+    <div class="about-visual">
+      <div class="moon-art"></div>
+      <div class="about-stats">
+        <div class="stat">
+          <div class="stat-num">12+</div>
+          <div class="stat-label">Signature Drinks</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">∞</div>
+          <div class="stat-label">Good Vibes</div>
+        </div>
+        <div class="stat">
+          <div class="stat-num">1</div>
+          <div class="stat-label">Magical Place</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MENU -->
+  <section class="menu-section" id="menu">
+    <p class="section-label">What We Serve</p>
+    <h2 class="section-title">Our Menu</h2>
+    <p class="menu-intro">Crafted with care, served with love</p>
+
+    <div class="menu-grid">
+      <div class="menu-card">
+        <span class="menu-card-emoji">🌙</span>
+        <div class="menu-card-name">Moonbeam Latte</div>
+        <div class="menu-card-desc">Oat milk, lavender syrup, and a dusting of butterfly pea flower — it glows.</div>
+        <div class="menu-card-price">$6.50</div>
+      </div>
+      <div class="menu-card">
+        <span class="menu-card-emoji">🧚</span>
+        <div class="menu-card-name">Fairy Matcha</div>
+        <div class="menu-card-desc">Ceremonial grade matcha with rose water and steamed milk of your choice.</div>
+        <div class="menu-card-price">$6.00</div>
+      </div>
+      <div class="menu-card">
+        <span class="menu-card-emoji">✨</span>
+        <div class="menu-card-name">Stardust Cold Brew</div>
+        <div class="menu-card-desc">24-hour cold brew with vanilla cream and edible gold shimmer.</div>
+        <div class="menu-card-price">$7.00</div>
+      </div>
+      <div class="menu-card">
+        <span class="menu-card-emoji">🌸</span>
+        <div class="menu-card-name">Cherry Blossom Lemonade</div>
+        <div class="menu-card-desc">House-made cherry blossom syrup with sparkling water and fresh lemon.</div>
+        <div class="menu-card-price">$5.50</div>
+      </div>
+      <div class="menu-card">
+        <span class="menu-card-emoji">🫖</span>
+        <div class="menu-card-name">Enchanted Earl Grey</div>
+        <div class="menu-card-desc">Loose-leaf Earl Grey with bergamot honey and a hint of vanilla cream.</div>
+        <div class="menu-card-price">$5.00</div>
+      </div>
+      <div class="menu-card">
+        <span class="menu-card-emoji">🥐</span>
+        <div class="menu-card-name">Fairy Toast</div>
+        <div class="menu-card-desc">Toasted brioche with whipped ricotta, seasonal fruit, and wildflower honey.</div>
+        <div class="menu-card-price">$8.00</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- AMBIANCE -->
+  <section class="ambiance">
+    <p class="section-label">The Experience</p>
+    <h2 class="section-title">More than a cafe.<br><em>A feeling.</em></h2>
+    <div class="ambiance-features">
+      <div class="feature">
+        <span class="feature-icon">🕯️</span>
+        <div class="feature-title">Cozy Atmosphere</div>
+        <div class="feature-desc">Soft lighting and curated music for every mood</div>
+      </div>
+      <div class="feature">
+        <span class="feature-icon">📖</span>
+        <div class="feature-title">Read & Relax</div>
+        <div class="feature-desc">Free WiFi and quiet corners made for lingering</div>
+      </div>
+      <div class="feature">
+        <span class="feature-icon">🌿</span>
+        <div class="feature-title">Plant-Forward</div>
+        <div class="feature-desc">Seasonal ingredients, always fresh, never boring</div>
+      </div>
+      <div class="feature">
+        <span class="feature-icon">🎨</span>
+        <div class="feature-title">Local Art</div>
+        <div class="feature-desc">Rotating gallery featuring community artists</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- VISIT -->
+  <section class="visit" id="visit">
+    <div>
+      <p class="section-label">Hours</p>
+      <h2 class="section-title">Come find us</h2>
+      <div class="hours-grid">
+        <div class="hour-row"><span class="hour-day">Monday – Friday</span><span class="hour-time">7am – 8pm</span></div>
+        <div class="hour-row"><span class="hour-day">Saturday</span><span class="hour-time">8am – 9pm</span></div>
+        <div class="hour-row"><span class="hour-day">Sunday</span><span class="hour-time">9am – 6pm</span></div>
+      </div>
+    </div>
+    <div>
+      <p class="section-label">Find Us</p>
+      <h2 class="section-title">Get in touch</h2>
+      <div class="contact-info">
+        <div class="contact-item"><span>📍</span><span>123 Moon Fairy Lane, Your City</span></div>
+        <div class="contact-item"><span>📞</span><span>(555) 123-4567</span></div>
+        <div class="contact-item"><span>📧</span><span>hello@moonfairycafe.com</span></div>
+        <div class="contact-item"><span>📸</span><span>@moonfairycafe</span></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <span class="footer-logo">🌙 Moon Fairy Cafe</span>
+    <p>© 2026 Moon Fairy Cafe · Made with magic</p>
+  </footer>
+
+</body>
+</html>
