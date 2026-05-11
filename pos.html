@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>Moon Fairy Cafe — POS</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Cormorant+Garamond:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    :root {
+      --bg: #0f0e0d;
+      --surface: #1a1916;
+      --border: #2a2926;
+      --text: #f5f0e8;
+      --muted: #6b6560;
+      --accent: #c8a96e;
+      --plum: #9b6b8a;
+      --danger: #c96e6e;
+      --success: #6ec88a;
+    }
+
+    body {
+      font-family: 'DM Mono', monospace;
+      background: var(--bg);
+      color: var(--text);
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      font-size: 14px;
+    }
+
+    /* ── TOP BAR ── */
+    #topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 20px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 18px;
+      color: var(--accent);
+      letter-spacing: 1px;
+    }
+
+    .topbar-right {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 1px;
+    }
+
+    #clock { color: var(--accent); }
+
+    /* ── NOTIFICATION ── */
+    #notif {
+      position: fixed;
+      top: 60px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-10px);
+      background: var(--accent);
+      color: var(--bg);
+      padding: 8px 20px;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      opacity: 0;
+      transition: all 0.2s;
+      z-index: 999;
+      pointer-events: none;
+    }
+    #notif.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ── MAIN LAYOUT ── */
+    #main {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ── MENU PANEL ── */
+    #menu-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Category tabs */
+    #cats {
+      display: flex;
+      padding: 12px 16px;
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+      overflow-x: auto;
+    }
+
+    #cats::-webkit-scrollbar { display: none; }
+
+    .cat-btn {
+      padding: 8px 16px;
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      white-space: nowrap;
+      margin-right: -1px;
+      transition: all 0.15s;
+    }
+
+    .cat-btn.active {
+      background: var(--accent);
+      color: var(--bg);
+      border-color: var(--accent);
+      font-weight: 500;
+      z-index: 1;
+    }
+
+    /* Menu grid */
+    #menu-grid {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 10px;
+      align-content: start;
+    }
+
+    #menu-grid::-webkit-scrollbar { width: 4px; }
+    #menu-grid::-webkit-scrollbar-track { background: transparent; }
+    #menu-grid::-webkit-scrollbar-thumb { background: var(--border); }
+
+    .item-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 14px 12px;
+      cursor: pointer;
+      text-align: left;
+      font-family: inherit;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: all 0.12s;
+      position: relative;
+      min-height: 90px;
+    }
+
+    .item-btn:active { transform: scale(0.97); background: #222; }
+
+    .item-emoji { font-size: 22px; }
+    .item-name { font-size: 12px; font-weight: 500; color: var(--text); line-height: 1.3; }
+    .item-price { font-size: 13px; color: var(--accent); font-weight: 500; }
+    .item-cat-tag {
+      position: absolute;
+      top: 6px; right: 6px;
+      font-size: 9px;
+      color: var(--muted);
+      letter-spacing: 0.5px;
+    }
+
+    /* ── CART PANEL ── */
+    #cart-panel {
+      width: 300px;
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    #cart-header {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    #order-num { color: var(--accent); }
+
+    #cart-items {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    #cart-items::-webkit-scrollbar { width: 3px; }
+    #cart-items::-webkit-scrollbar-thumb { background: var(--border); }
+
+    .empty-cart {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--border);
+    }
+
+    .empty-cart-icon { font-size: 36px; margin-bottom: 10px; }
+    .empty-cart-text { font-size: 12px; color: var(--muted); }
+
+    .cart-row {
+      display: flex;
+      align-items: center;
+      padding: 10px 16px;
+      border-bottom: 1px solid #1f1e1b;
+      gap: 8px;
+    }
+
+    .cart-emoji { font-size: 16px; flex-shrink: 0; }
+
+    .cart-info { flex: 1; min-width: 0; }
+    .cart-name { font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cart-unit { font-size: 10px; color: var(--muted); }
+
+    .cart-qty-ctrl {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .qty-btn {
+      background: var(--border);
+      border: none;
+      color: var(--accent);
+      width: 22px;
+      height: 22px;
+      cursor: pointer;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: inherit;
+      flex-shrink: 0;
+    }
+
+    .qty-num { font-size: 13px; min-width: 16px; text-align: center; }
+
+    .cart-total { font-size: 12px; color: var(--accent); font-weight: 500; min-width: 52px; text-align: right; flex-shrink: 0; }
+
+    /* Totals */
+    #cart-totals {
+      border-top: 1px solid var(--border);
+      padding: 14px 18px 0;
+    }
+
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 12px;
+    }
+
+    .total-row .label { color: var(--muted); }
+    .total-row.grand { font-size: 16px; font-weight: 500; padding-top: 10px; border-top: 1px solid var(--border); margin-top: 4px; }
+    .total-row.grand .label { color: var(--text); letter-spacing: 1px; }
+    .total-row.grand .val { color: var(--accent); font-size: 20px; }
+
+    #cart-actions {
+      display: flex;
+      gap: 8px;
+      padding: 14px 16px;
+    }
+
+    #clear-btn {
+      flex: 1;
+      padding: 12px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 11px;
+      letter-spacing: 1px;
+    }
+
+    #charge-btn {
+      flex: 2;
+      padding: 12px;
+      background: var(--accent);
+      border: none;
+      color: var(--bg);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 1px;
+      transition: all 0.15s;
+    }
+
+    #charge-btn:disabled {
+      background: var(--border);
+      color: var(--muted);
+      cursor: not-allowed;
+    }
+
+    /* ── CHECKOUT OVERLAY ── */
+    #checkout-overlay, #receipt-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(15,14,13,0.95);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 28px;
+      padding: 24px;
+    }
+
+    #checkout-overlay.show, #receipt-overlay.show { display: flex; }
+
+    .overlay-label {
+      font-size: 10px;
+      letter-spacing: 3px;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    .overlay-amount {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 64px;
+      color: var(--accent);
+      letter-spacing: -2px;
+      line-height: 1;
+    }
+
+    .pay-methods {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .pay-btn {
+      width: 120px;
+      height: 120px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      cursor: pointer;
+      font-family: inherit;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.15s;
+    }
+
+    .pay-btn:active, .pay-btn.selected {
+      background: var(--accent);
+      color: var(--bg);
+      border-color: var(--accent);
+    }
+
+    .pay-icon { font-size: 32px; }
+    .pay-label { font-size: 11px; letter-spacing: 2px; font-weight: 500; }
+
+    .back-btn {
+      padding: 10px 28px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 11px;
+      letter-spacing: 1px;
+    }
+
+    /* ── RECEIPT ── */
+    #receipt-overlay { background: rgba(15,14,13,0.97); }
+
+    .receipt {
+      background: #f5f0e8;
+      color: #1e1528;
+      width: 100%;
+      max-width: 320px;
+      padding: 28px 24px;
+      font-family: 'DM Mono', monospace;
+    }
+
+    .receipt-head { text-align: center; margin-bottom: 20px; }
+    .receipt-logo { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 600; color: #7a4f6d; }
+    .receipt-sub { font-size: 10px; color: #8a7a85; letter-spacing: 1px; margin-top: 2px; }
+
+    .receipt-divider { border: none; border-top: 1px dashed #ccc; margin: 14px 0; }
+
+    .receipt-item {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+
+    .receipt-totals { margin-top: 8px; }
+    .receipt-total-row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; color: #6b6060; }
+    .receipt-grand { display: flex; justify-content: space-between; font-size: 16px; font-weight: 500; color: #1e1528; margin-top: 8px; padding-top: 8px; border-top: 1px solid #ccc; }
+
+    .receipt-pay { text-align: center; margin-top: 16px; font-size: 11px; color: #7a4f6d; }
+    .receipt-thanks { text-align: center; margin-top: 10px; font-size: 12px; }
+
+    #new-order-btn {
+      width: 100%;
+      max-width: 320px;
+      padding: 14px;
+      background: var(--accent);
+      border: none;
+      color: var(--bg);
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 2px;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 600px) {
+      #cart-panel { width: 260px; }
+      #menu-grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px; }
+      .item-btn { padding: 10px 8px; min-height: 80px; }
+      .overlay-amount { font-size: 48px; }
+      .pay-btn { width: 100px; height: 100px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div id="topbar">
+  <div class="logo">🌙 Moon Fairy Cafe</div>
+  <div class="topbar-right">
+    <span id="order-display">ORDER #<span id="order-num">1001</span></span>
+    <span id="clock"></span>
+  </div>
+</div>
+
+<!-- NOTIFICATION -->
+<div id="notif"></div>
+
+<!-- MAIN -->
+<div id="main">
+
+  <!-- MENU PANEL -->
+  <div id="menu-panel">
+    <div id="cats"></div>
+    <div id="menu-grid"></div>
+  </div>
+
+  <!-- CART PANEL -->
+  <div id="cart-panel">
+    <div id="cart-header">
+      <span>CURRENT ORDER</span>
+    </div>
+    <div id="cart-items">
+      <div class="empty-cart">
+        <div class="empty-cart-icon">🌙</div>
+        <div class="empty-cart-text">No items yet</div>
+      </div>
+    </div>
+    <div id="cart-totals">
+      <div class="total-row"><span class="label">Subtotal</span><span class="val" id="subtotal">RM 0.00</span></div>
+      <div class="total-row"><span class="label">SST (6%)</span><span class="val" id="tax">RM 0.00</span></div>
+      <div class="total-row grand"><span class="label">TOTAL</span><span class="val" id="total">RM 0.00</span></div>
+    </div>
+    <div id="cart-actions">
+      <button id="clear-btn" onclick="clearCart()">CLEAR</button>
+      <button id="charge-btn" disabled onclick="openCheckout()">CHARGE</button>
+    </div>
+  </div>
+</div>
+
+<!-- CHECKOUT OVERLAY -->
+<div id="checkout-overlay">
+  <div class="overlay-label">Total Due</div>
+  <div class="overlay-amount" id="checkout-amount">RM 0.00</div>
+  <div class="overlay-label">Select Payment Method</div>
+  <div class="pay-methods">
+    <button class="pay-btn" onclick="handlePay('Cash')">
+      <span class="pay-icon">💵</span>
+      <span class="pay-label">CASH</span>
+    </button>
+    <button class="pay-btn" onclick="handlePay('Card')">
+      <span class="pay-icon">💳</span>
+      <span class="pay-label">CARD</span>
+    </button>
+    <button class="pay-btn" onclick="handlePay('QR Pay')">
+      <span class="pay-icon">📱</span>
+      <span class="pay-label">QR PAY</span>
+    </button>
+    <button class="pay-btn" onclick="handlePay('Touch \'n Go')">
+      <span class="pay-icon">🔵</span>
+      <span class="pay-label">TNG</span>
+    </button>
+  </div>
+  <button class="back-btn" onclick="closeCheckout()">← BACK</button>
+</div>
+
+<!-- RECEIPT OVERLAY -->
+<div id="receipt-overlay">
+  <div class="receipt" id="receipt-content"></div>
+  <button id="new-order-btn" onclick="newOrder()">NEW ORDER</button>
+</div>
+
+<script>
+  // ── MENU DATA ──
+  const MENU = [
+    // Breakfast Toast
+    { id: 1,  name: "Classic Toast Butter Kaya",  price: 3.20, cat: "Toast",    emoji: "🍞" },
+    { id: 2,  name: "Peanut Butter Toast",         price: 3.50, cat: "Toast",    emoji: "🥜" },
+    { id: 3,  name: "Golden Toast",                price: 3.00, cat: "Toast",    emoji: "✨" },
+    { id: 4,  name: "Butter & Strawberry Jam",     price: 4.00, cat: "Toast",    emoji: "🍓" },
+    { id: 5,  name: "Ham & Cheese Toast",          price: 9.00, cat: "Toast",    emoji: "🧀" },
+    // Noodles
+    { id: 6,  name: "Dried Noodles 干捞粉",         price: 8.50, cat: "Noodles",  emoji: "🍜" },
+    { id: 7,  name: "Soup Noodles 清汤粉",           price: 8.50, cat: "Noodles",  emoji: "🍲" },
+    // Breakfast Set & Others
+    { id: 8,  name: "Western Breakfast Set 西式早餐", price: 11.00, cat: "Sets",   emoji: "🍳" },
+    { id: 9,  name: "Chee Cheong Fun (3pcs) 猪肠粉", price: 5.00, cat: "Sets",   emoji: "🥢" },
+    // Add-ons
+    { id: 10, name: "Add-on per piece 加粉每一条",   price: 1.50, cat: "Add-ons", emoji: "➕" },
+    { id: 11, name: "Curry Sauce 咖喱汁",            price: 1.30, cat: "Add-ons", emoji: "🍛" },
+    { id: 12, name: "Curry Pork Skin 咖喱猪皮",      price: 1.80, cat: "Add-ons", emoji: "🌶️" },
+  ];
+
+  const CATEGORIES = ["All", "Toast", "Noodles", "Sets", "Add-ons"];
+  const TAX_RATE = 0.06; // Malaysia SST 6%
+
+  let cart = [];
+  let orderNum = 1001;
+  let currentCategory = "All";
+  let completedOrder = null;
+
+  // ── CLOCK ──
+  function updateClock() {
+    document.getElementById('clock').textContent =
+      new Date().toLocaleTimeString('en-MY', { hour: '2-digit', minute: '2-digit' });
+  }
+  updateClock();
+  setInterval(updateClock, 10000);
+
+  // ── NOTIFY ──
+  function notify(msg) {
+    const el = document.getElementById('notif');
+    el.textContent = msg;
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 1800);
+  }
+
+  // ── FORMAT ──
+  function fmt(n) { return 'RM ' + n.toFixed(2); }
+
+  // ── BUILD CATEGORIES ──
+  function buildCats() {
+    const el = document.getElementById('cats');
+    CATEGORIES.forEach(cat => {
+      const btn = document.createElement('button');
+      btn.className = 'cat-btn' + (cat === currentCategory ? ' active' : '');
+      btn.textContent = cat.toUpperCase();
+      btn.onclick = () => { currentCategory = cat; buildCats(); buildGrid(); };
+      el.appendChild(btn);
+    });
+  }
+
+  // ── BUILD GRID ──
+  function buildGrid() {
+    const el = document.getElementById('menu-grid');
+    el.innerHTML = '';
+    const items = currentCategory === 'All' ? MENU : MENU.filter(i => i.cat === currentCategory);
+    items.forEach(item => {
+      const btn = document.createElement('button');
+      btn.className = 'item-btn';
+      btn.innerHTML = `
+        <span class="item-cat-tag">${item.cat}</span>
+        <span class="item-emoji">${item.emoji}</span>
+        <span class="item-name">${item.name}</span>
+        <span class="item-price">${fmt(item.price)}</span>
+      `;
+      btn.onclick = () => addItem(item);
+      el.appendChild(btn);
+    });
+  }
+
+  // ── CART ──
+  function addItem(item) {
+    const existing = cart.find(i => i.id === item.id);
+    if (existing) existing.qty++;
+    else cart.push({ ...item, qty: 1 });
+    renderCart();
+    notify(`${item.emoji} ${item.name.split(' ')[0]} added`);
+  }
+
+  function removeItem(id) {
+    const idx = cart.findIndex(i => i.id === id);
+    if (idx === -1) return;
+    if (cart[idx].qty > 1) cart[idx].qty--;
+    else cart.splice(idx, 1);
+    renderCart();
+  }
+
+  function clearCart() {
+    cart = [];
+    renderCart();
+  }
+
+  function renderCart() {
+    const el = document.getElementById('cart-items');
+    if (cart.length === 0) {
+      el.innerHTML = `<div class="empty-cart"><div class="empty-cart-icon">🌙</div><div class="empty-cart-text">No items yet</div></div>`;
+    } else {
+      el.innerHTML = cart.map(item => `
+        <div class="cart-row">
+          <span class="cart-emoji">${item.emoji}</span>
+          <div class="cart-info">
+            <div class="cart-name">${item.name}</div>
+            <div class="cart-unit">${fmt(item.price)} each</div>
+          </div>
+          <div class="cart-qty-ctrl">
+            <button class="qty-btn" onclick="removeItem(${item.id})">−</button>
+            <span class="qty-num">${item.qty}</span>
+            <button class="qty-btn" onclick="addItem(${JSON.stringify(item).replace(/"/g, '&quot;')})">+</button>
+          </div>
+          <div class="cart-total">${fmt(item.price * item.qty)}</div>
+        </div>
+      `).join('');
+    }
+
+    const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+    const tax = subtotal * TAX_RATE;
+    const total = subtotal + tax;
+
+    document.getElementById('subtotal').textContent = fmt(subtotal);
+    document.getElementById('tax').textContent = fmt(tax);
+    document.getElementById('total').textContent = fmt(total);
+
+    const chargeBtn = document.getElementById('charge-btn');
+    chargeBtn.disabled = cart.length === 0;
+    chargeBtn.textContent = cart.length ? `CHARGE ${fmt(total)}` : 'CHARGE';
+  }
+
+  // ── CHECKOUT ──
+  function openCheckout() {
+    if (cart.length === 0) return;
+    const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+    const total = subtotal * (1 + TAX_RATE);
+    document.getElementById('checkout-amount').textContent = fmt(total);
+    document.getElementById('checkout-overlay').classList.add('show');
+  }
+
+  function closeCheckout() {
+    document.getElementById('checkout-overlay').classList.remove('show');
+  }
+
+  function handlePay(method) {
+    const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+    const tax = subtotal * TAX_RATE;
+    const total = subtotal + tax;
+
+    completedOrder = { cart: [...cart], subtotal, tax, total, orderNum, method };
+
+    document.querySelector('.pay-methods .pay-btn:active')?.classList.remove('selected');
+
+    setTimeout(() => {
+      closeCheckout();
+      showReceipt();
+      orderNum++;
+      cart = [];
+      renderCart();
+    }, 400);
+  }
+
+  // ── RECEIPT ──
+  function showReceipt() {
+    const o = completedOrder;
+    const now = new Date().toLocaleString('en-MY');
+    const itemRows = o.cart.map(i =>
+      `<div class="receipt-item"><span>${i.qty}× ${i.name}</span><span>${fmt(i.price * i.qty)}</span></div>`
+    ).join('');
+
+    document.getElementById('receipt-content').innerHTML = `
+      <div class="receipt-head">
+        <div class="receipt-logo">🌙 Moon Fairy Cafe</div>
+        <div class="receipt-sub">ORDER #${o.orderNum} &nbsp;·&nbsp; ${now}</div>
+      </div>
+      <hr class="receipt-divider" />
+      ${itemRows}
+      <hr class="receipt-divider" />
+      <div class="receipt-totals">
+        <div class="receipt-total-row"><span>Subtotal</span><span>${fmt(o.subtotal)}</span></div>
+        <div class="receipt-total-row"><span>SST (6%)</span><span>${fmt(o.tax)}</span></div>
+        <div class="receipt-grand"><span>TOTAL</span><span>${fmt(o.total)}</span></div>
+      </div>
+      <div class="receipt-pay">Paid via ${o.method} ✓</div>
+      <div class="receipt-thanks">Thank you! Come again 🌙</div>
+    `;
+
+    document.getElementById('receipt-overlay').classList.add('show');
+  }
+
+  function newOrder() {
+    document.getElementById('receipt-overlay').classList.remove('show');
+    document.getElementById('order-num').textContent = orderNum;
+  }
+
+  // ── INIT ──
+  buildCats();
+  buildGrid();
+  renderCart();
+</script>
+</body>
+</html>
